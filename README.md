@@ -1,0 +1,117 @@
+# Software Design Patterns
+
+## What Are Software Design Patterns?
+
+Design patterns are **proven, reusable solutions** to common software design problems. They provide a structured approach to solving problems in a **scalable, maintainable, and efficient way**.
+
+Instead of focusing on "why" and "what" makes the design **good** or **bad**, design patterns focus on "how" something should be coded.
+
+## Why Use Design Patterns?
+
+- **Standardized Solutions** → Avoid reinventing the wheel.
+- **Maintainability** → Code becomes easier to modify and extend.
+- **Scalability** → Helps design systems that grow over time.
+- **Readability & Collaboration:** → Common patterns make it easier for developers to understand each other's code.
+
+---
+
+## Gang of Four (GoF) Design Patterns
+
+The **Gang of Four (GoF)** refers to four authors—**Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides**—who wrote the famous book ***"Design Patterns: Elements of Reusable Object-Oriented Software"*** in 1994.
+
+They introduced **23 foundational design patterns**, categorized into three groups:
+
+### 1️⃣ Creational Patterns (Object Creation & Initialization)
+
+**Definition:**  
+Creational patterns deal with **how objects are created** while hiding the complexities of instantiation. They ensure that the system remains **flexible and reusable** by providing controlled and optimized object creation mechanisms.
+
+### 2️⃣ Structural Patterns (Class & Object Composition)
+
+**Definition:**  
+Structural patterns define **how objects and classes are composed** to form larger structures while ensuring flexibility and efficiency. They help create relationships between components that are **scalable and easy to maintain**.
+
+### 3️⃣ Behavioral Patterns (Communication Between Objects)
+
+**Definition:**  
+Behavioral patterns focus on **how objects interact and communicate**, defining the responsibilities of different components. They help manage **complex workflows and business logic** efficiently.
+
+---
+
+#### Now, we begin our journey through the 23 Gang of Four (GoF) Design Patterns, starting with Creational Patterns.
+
+### 1️⃣ Singleton Pattern
+
+**Definition:**  
+The Singleton pattern ensures that a class **has only one instance** and provides a **global access point** to that instance.
+
+**Intent:** 
+- Restrict the instantiation of a class to **one** object.
+- Provide a **global access point** to that single instance.
+- Ensure **controlled access** to shared resources (e.g., configuration settings, logging, caching).
+
+**Structure:** 
+- **Private Constructor** → Prevents direct instantiation using ```new```.
+- **Static Instance Property** → Stores the single instance.
+- **Public Static Method** → Provides global access to the instance.
+
+**Example:** 
+In real-world applications, configurations (like API keys, database connections, environment variables) should be loaded once and shared across the entire app.
+
+```ts
+class ConfigManager {
+  private static instance: ConfigManager;
+  private config: Record<string, any>;
+
+  // Private constructor to prevent external instantiation
+  private constructor() {
+    this.config = {
+      apiUrl: "https://api.example.com",
+      maxConnections: 10,
+      timeout: 5000,
+    };
+  }
+
+  // Public method to get the single instance
+  public static getInstance(): ConfigManager {
+    if (!ConfigManager.instance) {
+      ConfigManager.instance = new ConfigManager();
+    }
+    return ConfigManager.instance;
+  }
+
+  // Method to get a config value
+  public get(key: string): any {
+    return this.config[key];
+  }
+
+  // Method to set/update a config value
+  public set(key: string, value: any): void {
+    this.config[key] = value;
+  }
+}
+
+// Usage:
+const config1 = ConfigManager.getInstance();
+console.log(config1.get("apiUrl")); // Output: https://api.example.com
+
+const config2 = ConfigManager.getInstance();
+config2.set("apiUrl", "https://new-api.example.com");
+
+console.log(config1.get("apiUrl")); // Output: https://new-api.example.com (same instance)
+console.log(config1 === config2); // Output: true (same instance)
+```
+
+**Explanation:** 
+- The **constructor is private**, so no new instances can be created from outside.
+- The **static** ```getInstance()``` **method** ensures only one instance is created.
+- The **same instance is used** across the application, maintaining **consistent configurations.**
+- When one part of the system updates the configuration, all other parts see the same update.
+
+**When to Use:** 
+- When a **single instance** should control a **shared resource** (e.g., logging, configuration, database connection).
+- When you **need global access** to a component but must enforce a single entry point.
+- When **state consistency** is crucial (e.g., managing user sessions, caching).
+
+---
+
