@@ -40,7 +40,7 @@ Behavioral patterns focus on **how objects interact and communicate**, defining 
 
 #### Now, we begin our journey through the 23 Gang of Four (GoF) Design Patterns, starting with Creational Patterns.
 
-### 1. Singleton
+### 1. Singleton Pattern
 
 **Definition:**  
 The Singleton pattern ensures that a class **has only one instance** and provides a **global access point** to that instance.
@@ -119,7 +119,7 @@ console.log(config1 === config2); // Output: true (same instance)
 
 ---
 
-### 2. Factory Method
+### 2. Factory Method Pattern
 
 **Definition:**  
 The Factory Method Pattern defines an **interface** for creating an object, but lets subclasses alter the type of objects that will be created. It allows a class to delegate the responsibility of instantiating its objects to subclasses, promoting **loose coupling** and enabling the addition of new types of objects **without modifying existing code**.
@@ -202,7 +202,7 @@ factory.notify("Welcome!"); // Output: Sending EMAIL: Welcome!
 
 ---
 
-### 3. Abstract Fatory
+### 3. Abstract Fatory Pattern
 
 **Definition:**  
 The Abstract Factory Pattern provides an interface for creating **families of related or dependent objects** without specifying their concrete classes.
@@ -312,5 +312,233 @@ renderUI(factory);
 - When you need to create **multiple related objects** consistently.
 - When product variations (like themes, platforms, configs) are **mutually exclusive**.
 - When adding a new family of products should be easy and not require modifying existing client logic.
+
+---
+
+### 4. Prototype Pattern
+
+**Definition:**  
+The Prototype Pattern lets you create new objects by **cloning existing objects**, known as prototypes, **instead of creating them from scratch**. This is useful when object creation is **expensive or complex**.
+
+**Intent:**
+
+- Avoid the overhead of creating objects from scratch by **cloning pre-configured prototypes**.
+- Enable new object creation at runtime without depending on their concrete classes.
+- Make it easy to add and remove prototypes dynamically.
+
+**Structure:**
+
+- A Prototype interface declares a `clone()` method.
+- **Concrete classes** implement the `clone()` method to return a copy of themselves.
+- A **Client** can clone objects without knowing their concrete class.
+
+**Example:**
+In a document editor, users can choose a pre-defined template. When selected, the system clones the template and allows the user to modify their own version.
+
+```ts
+// Prototype interface
+interface DocumentPrototype {
+  clone(): DocumentPrototype;
+  getInfo(): void;
+}
+
+// Concrete Prototype - Report Template
+class ReportDocument implements DocumentPrototype {
+  constructor(
+    private title: string,
+    private content: string,
+    private author: string
+  ) {}
+
+  clone(): DocumentPrototype {
+    return new ReportDocument(this.title, this.content, this.author);
+  }
+
+  getInfo(): void {
+    console.log(`Report: "${this.title}" by ${this.author}`);
+  }
+}
+
+// Concrete Prototype - Resume Template
+class ResumeDocument implements DocumentPrototype {
+  constructor(private name: string, private skills: string[]) {}
+
+  clone(): DocumentPrototype {
+    return new ResumeDocument(this.name, [...this.skills]);
+  }
+
+  getInfo(): void {
+    console.log(`Resume: ${this.name} with skills ${this.skills.join(", ")}`);
+  }
+}
+
+// Prototype Registry
+class DocumentRegistry {
+  private prototypes: Map<string, DocumentPrototype> = new Map();
+
+  register(type: string, prototype: DocumentPrototype): void {
+    this.prototypes.set(type, prototype);
+  }
+
+  create(type: string): DocumentPrototype {
+    const prototype = this.prototypes.get(type);
+    if (!prototype) throw new Error("No such document type registered");
+    return prototype.clone();
+  }
+}
+
+// Usage
+const registry = new DocumentRegistry();
+registry.register(
+  "report",
+  new ReportDocument("Monthly Report", "Q1 Data", "Finance Team")
+);
+registry.register(
+  "resume",
+  new ResumeDocument("John Doe", ["JavaScript", "TypeScript", "Node.js"])
+);
+
+const user1Doc = registry.create("report");
+const user2Doc = registry.create("resume");
+
+user1Doc.getInfo(); // Report: "Monthly Report" by Finance Team
+user2Doc.getInfo(); // Resume: John Doe with skills JavaScript, TypeScript, Node.js
+```
+
+**Explanation:**
+
+- The `clone()` method ensures each copy is independent and deeply replicated.
+- The **Prototype Registry** acts like a storage of prototypes to clone from.
+- The **client doesn't know** which concrete class is used — only that it implements the `DocumentPrototype`.
+
+**When to Use:**
+
+- When object creation is **costly or time-consuming**.
+- When the system needs to create objects **at runtime** from a pool of prototypes.
+- When you need to **avoid subclassing factories** for each variation.
+- When you want to **decouple clients** from object instantiation..
+
+---
+
+### 5. Builder Pattern
+
+**Definition:**  
+The Builder Pattern separates the **construction of a complex object** from its representation so that the same construction process can create **different representations**.
+
+**Intent:**
+
+- Build a complex object **step-by-step**.
+- Allow creation of different representations using the **same building process**.
+- Encapsulate the construction logic in a **dedicated builder class**.
+
+**Structure:**
+
+- **Builder Interface** declares all possible building steps.
+- **Concrete Builders** implement these steps to construct and assemble parts.
+- **Director** defines the order in which to call steps.
+- **Product** is the complex object being built.
+
+**Example:**
+For instance, we want to build an HTTP request step-by-step (method, headers, body, etc.) using a fluent and flexible API.
+
+```ts
+// Product
+class HttpRequest {
+  method?: string;
+  url?: string;
+  headers: Record<string, string> = {};
+  body?: string;
+
+  send(): void {
+    console.log(`Sending ${this.method} request to ${this.url}`);
+    console.log("Headers:", this.headers);
+    if (this.body) console.log("Body:", this.body);
+  }
+}
+
+// Builder Interface
+interface HttpRequestBuilder {
+  setMethod(method: string): this;
+  setURL(url: string): this;
+  setHeader(key: string, value: string): this;
+  setBody(body: string): this;
+  build(): HttpRequest;
+}
+
+// Concrete Builder
+class ConcreteHttpRequestBuilder implements HttpRequestBuilder {
+  private request: HttpRequest;
+
+  constructor() {
+    this.request = new HttpRequest();
+  }
+
+  setMethod(method: string): this {
+    this.request.method = method;
+    return this;
+  }
+
+  setURL(url: string): this {
+    this.request.url = url;
+    return this;
+  }
+
+  setHeader(key: string, value: string): this {
+    this.request.headers[key] = value;
+    return this;
+  }
+
+  setBody(body: string): this {
+    this.request.body = body;
+    return this;
+  }
+
+  build(): HttpRequest {
+    return this.request;
+  }
+}
+
+// Director (Optional)
+class HttpDirector {
+  constructor(private builder: HttpRequestBuilder) {}
+
+  createPostRequest(url: string, body: string): HttpRequest {
+    return this.builder
+      .setMethod("POST")
+      .setURL(url)
+      .setHeader("Content-Type", "application/json")
+      .setBody(body)
+      .build();
+  }
+}
+
+// Usage
+const builder = new ConcreteHttpRequestBuilder();
+const director = new HttpDirector(builder);
+
+const request = director.createPostRequest(
+  "https://api.example.com/data",
+  JSON.stringify({ name: "Uzair", role: "Developer" })
+);
+
+request.send();
+
+// Output:
+// Sending POST request to https://api.example.com/data
+// Headers: { 'Content-Type': 'application/json' }
+// Body: {"name":"Uzair","role":"Developer"}
+```
+
+**Explanation:**
+
+- We’re constructing an `HttpRequest` object **step-by-step**, keeping the logic out of the `HttpRequest` class.
+- The **Builder** allows fluid construction, the **Director** encapsulates reusable construction logic.
+- You can easily add different builders for other protocols (e.g., GraphQLRequestBuilder).
+
+**When to Use:**
+
+- When you need to build complex objects with many optional or required fields.
+- When the object construction process must be **independent of the parts that make up the object**.
+- When you want to reuse the same **construction process for different representations**.
 
 ---
